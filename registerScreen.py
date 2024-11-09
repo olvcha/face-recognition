@@ -1,9 +1,11 @@
+import sys
 import cv2
-from PyQt5.QtCore import Qt, QTimer
-from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QLineEdit, QMessageBox
+from PyQt5.QtGui import QImage, QPixmap
+from PyQt5.QtCore import QTimer, Qt
 
 from DatabaseManager import DatabaseManager
+from FeatureExtractionThread import FeatureExtractionThread
 from UserIdentification import UserIdentification
 from cameraApp import CameraApp
 
@@ -19,6 +21,7 @@ class RegisterScreen(QWidget):
         self.is_camera_running = False
         self.database_manager = DatabaseManager()
         self.captured_frame = None  # Store captured photo for further processing
+        self.feature_extraction_thread = None
         self.init_ui()
 
     def init_ui(self):
@@ -54,10 +57,11 @@ class RegisterScreen(QWidget):
         layout.addWidget(self.back_button)
 
         self.setLayout(layout)
+        self.setWindowTitle("Registration Screen")
 
         # Set up a QTimer to update the camera feed
         self.timer = QTimer()
-        self.timer.timeout.connect(self.update_camera_feed)  # Connect the timer to update the camera feed
+        self.timer.timeout.connect(self.update_camera_feed)
 
     def start_camera(self):
         '''Start the camera feed and timer'''
@@ -122,39 +126,26 @@ class RegisterScreen(QWidget):
         self.captured_frame = frame
 
     def submit_data(self):
-        '''Processes the last captured photo, calculates feature vector, and saves to database'''
+        '''Start the feature extraction in a separate thread'''
         name = self.name_input.text()
         surname = self.surname_input.text()
 
-        # Check if there is a captured frame
         if self.captured_frame is not None:
-            # Extract the feature vector (distances and angles) from the captured frame
-            feature_vector = self.user_identification.extract_feature_vector(self.captured_frame)
-
-            if feature_vector:
-                # Convert feature vector to a string for database storage
-                feature_vector_str = ",".join(map(str, feature_vector))
-
-                # Save to database
-                result = self.database_manager.register_user(name, surname, feature_vector_str)
-                success_msg = QMessageBox(self)
-                success_msg.setIcon(QMessageBox.Information)
-                success_msg.setWindowTitle("Registration")
-                success_msg.setText(result)
-                success_msg.setStandardButtons(QMessageBox.Ok)
-
-                # Connect the OK button to go back to the main page
-                success_msg.buttonClicked.connect(self.go_back)
-
-                # Display the message box
-                success_msg.exec_()
-
-                # Clear captured frame after successful submission
-                self.captured_frame = None
-            else:
-                QMessageBox.warning(self, "Error", "Unable to detect face or calculate feature vector.")
+            # Initialize and start the feature extraction thread
+            self.feature_extraction_thread = FeatureExtractionThread(
+                name, surname, self.captured_frame, self.user_identification
+            )
+            self.feature_extraction_thread.extraction_complete.connect(self.on_extraction_complete)
+            self.feature_extraction_thread.start()
         else:
             QMessageBox.warning(self, "Error", "No captured photo available. Please capture a photo first.")
+
+    def on_extraction_complete(self, result):
+        '''Handle the completion of feature extraction and registration'''
+        QMessageBox.information(self, "Registration", result)
+        self.feature_extraction_thread = None  # Clean up the thread
+        self.captured_frame = None  # Reset the captured frame after submission
+        self.go_back()  # Return to the main screen after submission
 
     def showEvent(self, event):
         '''Start the camera when the screen is shown'''
