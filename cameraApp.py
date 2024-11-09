@@ -65,6 +65,12 @@ class CameraApp(QWidget):
 
             self.label.setPixmap(pixmap)
 
+    def capture_frame(self):
+        '''Capture and return the current frame'''
+        if self.camera_view:
+            return self.camera_view.get_frame()
+        return None
+
     def go_back(self):
         '''This method stops the camera and switches back to the main screen'''
         self.stop_camera()
