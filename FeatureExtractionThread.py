@@ -6,13 +6,14 @@ from DatabaseManager import DatabaseManager
 class FeatureExtractionThread(QThread):
     extraction_complete = pyqtSignal(str)  # Signal to notify when extraction and saving are complete
 
-    def __init__(self, name, surname, captured_frame, user_identification):
+    def __init__(self, name, password, captured_frame, user_identification, overwrite):
         super().__init__()
         self.name = name
-        self.surname = surname
+        self.password = password
         self.captured_frame = captured_frame
         self.user_identification = user_identification
-        self.db_manager = DatabaseManager()  # Initialize DatabaseManager here to ensure connection is fresh
+        self.db_manager = DatabaseManager()
+        self.overwrite= overwrite# Initialize DatabaseManager here to ensure connection is fresh
 
     def run(self):
         '''Extract feature vector and save to database'''
@@ -26,11 +27,11 @@ class FeatureExtractionThread(QThread):
             # Step 2: Save to database
             # Convert feature vector to a string format (or appropriate format for database storage)
             feature_vector_str = ",".join(map(str, feature_vector))
-            result = self.db_manager.register_user(self.name, self.surname, feature_vector_str)
+            result = self.db_manager.register_user(self.name, self.password, feature_vector_str, self.overwrite)
 
             # Emit success message if saved correctly
             if result:
-                self.extraction_complete.emit(f"User {self.name} {self.surname} registered successfully!")
+                self.extraction_complete.emit(f"User {self.name} registered successfully!")
             else:
                 self.extraction_complete.emit("Error: Failed to save user data to database.")
 

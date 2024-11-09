@@ -1,6 +1,6 @@
 import sys
 import cv2
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QLineEdit, QMessageBox
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QLineEdit, QMessageBox, QHBoxLayout, QStyle
 from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtCore import QTimer, Qt
 
@@ -27,14 +27,28 @@ class RegisterScreen(QWidget):
     def init_ui(self):
         layout = QVBoxLayout()
 
-        # Input fields for name and surname
+        # Input field for name
         self.name_input = QLineEdit(self)
         self.name_input.setPlaceholderText("Enter Name")
         layout.addWidget(self.name_input)
 
-        self.surname_input = QLineEdit(self)
-        self.surname_input.setPlaceholderText("Enter Surname")
-        layout.addWidget(self.surname_input)
+        # Password input with toggle visibility button
+        password_layout = QHBoxLayout()
+        self.password_input = QLineEdit(self)
+        self.password_input.setPlaceholderText("Enter Safety Password")
+        self.password_input.setEchoMode(QLineEdit.Password)
+        password_layout.addWidget(self.password_input)
+
+        # Eye button to toggle visibility
+        self.show_password_button = QPushButton(self)
+        self.show_password_button.setCheckable(True)
+        self.update_eye_icon()
+        self.show_password_button.setFixedSize(30, 30)
+        self.show_password_button.setToolTip("Show/Hide Password")
+        self.show_password_button.clicked.connect(self.toggle_password_visibility)
+        password_layout.addWidget(self.show_password_button)
+
+        layout.addLayout(password_layout)
 
         # Camera view for displaying live feed or captured photo
         self.camera_view_label = QLabel(self)
@@ -62,6 +76,22 @@ class RegisterScreen(QWidget):
         # Set up a QTimer to update the camera feed
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_camera_feed)
+
+    def toggle_password_visibility(self):
+        '''Toggle the visibility of the password'''
+        if self.show_password_button.isChecked():
+            self.password_input.setEchoMode(QLineEdit.Normal)  # Show password
+        else:
+            self.password_input.setEchoMode(QLineEdit.Password)  # Hide password
+        self.update_eye_icon()  # Update icon based on visibility state
+
+    def update_eye_icon(self):
+        '''Updates the eye icon based on password visibility'''
+        if self.show_password_button.isChecked():
+            icon = self.style().standardIcon(QStyle.SP_ComputerIcon)  # "Visible" icon
+        else:
+            icon = self.style().standardIcon(QStyle.SP_DialogCloseButton)  # "Hidden" icon
+        self.show_password_button.setIcon(icon)
 
     def start_camera(self):
         '''Start the camera feed and timer'''
@@ -126,14 +156,51 @@ class RegisterScreen(QWidget):
         self.captured_frame = frame
 
     def submit_data(self):
-        '''Start the feature extraction in a separate thread'''
+        '''Start the feature extraction in a separate thread or prompt if user exists'''
         name = self.name_input.text()
-        surname = self.surname_input.text()
+        password = self.password_input.text()
 
+        # Check if user with this name exists
+        existing_user = self.database_manager.user_exists(name)
+
+        if existing_user:
+            # If user exists, verify password
+            stored_password, _ = existing_user
+            if self.database_manager.verify_password(stored_password, password):
+                # Ask if they want to overwrite data
+                reply = QMessageBox.question(
+                    self, 'User Exists',
+                    "A user with this name already exists. Do you want to overwrite the data?",
+                    QMessageBox.Yes | QMessageBox.No
+                )
+                if reply == QMessageBox.Yes:
+                    # Overwrite existing user data
+                    self.register_user_with_overwrite(name, password)
+                else:
+                    QMessageBox.information(self, "Cancelled", "User data was not overwritten.")
+            else:
+                # Password mismatch
+                QMessageBox.warning(self, "Error", "Password does not match to the existing user of this name. Please enter correct one to overwrite face data.")
+        else:
+            # New user, proceed with registration
+            self.register_user_without_overwrite(name, password)
+
+    def register_user_with_overwrite(self, name, password):
+        '''Register user and overwrite existing data'''
+        # Start feature extraction and overwrite data in a separate thread
+        self.start_feature_extraction_thread(name, password, overwrite=True)
+
+    def register_user_without_overwrite(self, name, password):
+        '''Register user without overwriting'''
+        # Start feature extraction without overwrite
+        self.start_feature_extraction_thread(name, password, overwrite=False)
+
+    def start_feature_extraction_thread(self, name, password, overwrite):
+        '''Initialize and start feature extraction with registration in a thread'''
         if self.captured_frame is not None:
             # Initialize and start the feature extraction thread
             self.feature_extraction_thread = FeatureExtractionThread(
-                name, surname, self.captured_frame, self.user_identification
+                name, password, self.captured_frame, self.user_identification, overwrite
             )
             self.feature_extraction_thread.extraction_complete.connect(self.on_extraction_complete)
             self.feature_extraction_thread.start()
