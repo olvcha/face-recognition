@@ -70,18 +70,18 @@ class CameraApp(QWidget):
         self.stop_camera()
         self.stacked_widget.setCurrentIndex(0)
 
-    # def showEvent(self, event):
-    #     '''This method is called when the widget with camera is being shown, starts the camera'''
-    #     self.start_camera()
-    #     super().showEvent(event)
-    #
-    # def hideEvent(self, event):
-    #     ''''''
-    #     # Called when the widget is hidden, stop the camera
-    #     self.stop_camera()
-    #     super().hideEvent(event)
-    #
-    # def closeEvent(self, event):
-    #     # Ensure the camera is released when the window is closed
-    #     self.stop_camera()
-    #     event.accept()
+    def showEvent(self, event):
+        '''This method is called when the widget with camera is being shown, starts the camera'''
+        self.start_camera()
+        super().showEvent(event)
+
+    def hideEvent(self, event):
+        ''''''
+        # Called when the widget is hidden, stop the camera
+        self.stop_camera()
+        super().hideEvent(event)
+
+    def closeEvent(self, event):
+        # Ensure the camera is released when the window is closed
+        self.stop_camera()
+        event.accept()
