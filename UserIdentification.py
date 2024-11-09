@@ -3,6 +3,7 @@ import cv2
 import dlib
 import numpy as np
 from DatabaseManager import DatabaseManager
+from registerScreen import NoFaceDetectedException, MultipleFacesDetectedException
 
 
 class UserIdentification:
@@ -10,8 +11,7 @@ class UserIdentification:
 
     def __init__(self):
         self.detector = dlib.get_frontal_face_detector()
-        self.predictor = dlib.shape_predictor(
-            "shape_predictor_68_face_landmarks.dat")  # Ensure this model file is available
+        self.predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")  # Ensure this model file is available
         self.db_manager = DatabaseManager()
 
     def preprocess_image(self, image):
@@ -35,9 +35,11 @@ class UserIdentification:
         # Step 2: Detect faces
         faces = self.detector(gray)
         if len(faces) == 0:
-            return None  # No faces found
+            raise NoFaceDetectedException("No faces detected.")
+        elif len(faces) > 1:
+            raise MultipleFacesDetectedException("Multiple faces detected.")
 
-        # Step 3: Detect landmarks on the first detected face
+        # Step 3: Detect landmarks on the single detected face
         face = faces[0]
         landmarks = self.predictor(gray, face)
 
@@ -104,15 +106,22 @@ class UserIdentification:
         '''Detects landmarks on a single frame and returns the frame with landmarks'''
         gray = self.preprocess_image(frame)
         faces = self.detector(gray)
-        for face in faces:
-            landmarks = self.predictor(gray, face)
-            for n in range(68):
-                x = landmarks.part(n).x
-                y = landmarks.part(n).y
-                cv2.circle(frame, (x, y), 2, (0, 255, 0), -1)
+
+        # Ensure only one face is present for drawing landmarks
+        if len(faces) == 0:
+            raise NoFaceDetectedException("No faces detected.")
+        elif len(faces) > 1:
+            raise MultipleFacesDetectedException("Multiple faces detected.")
+
+        # Draw landmarks for the single detected face
+        landmarks = self.predictor(gray, faces[0])
+        for n in range(68):
+            x = landmarks.part(n).x
+            y = landmarks.part(n).y
+            cv2.circle(frame, (x, y), 2, (0, 255, 0), -1)
         return frame
 
-    def register_user(self, name, surname, photo):
+    def register_user(self, name, password, photo):
         '''Placeholder method for registering a user - could save to a database'''
         # Example code to save user data and photo (not implemented)
-        return f"User {name} {surname} registered successfully."
+        return f"User {name} registered successfully."

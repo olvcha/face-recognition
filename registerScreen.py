@@ -5,9 +5,13 @@ from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtCore import QTimer, Qt
 
 from DatabaseManager import DatabaseManager
+from FaceExceptions import NoFaceDetectedException, MultipleFacesDetectedException
 from FeatureExtractionThread import FeatureExtractionThread
 from UserIdentification import UserIdentification
 from cameraApp import CameraApp
+
+
+
 
 
 class RegisterScreen(QWidget):
@@ -140,20 +144,30 @@ class RegisterScreen(QWidget):
 
     def process_captured_frame(self, frame):
         '''Processes the captured frame to display landmarks and store for further processing'''
-        # Draw landmarks on the captured frame
-        image_with_landmarks = self.user_identification.draw_landmarks(frame)
+        try:
+            # Attempt to draw landmarks on the captured frame
+            image_with_landmarks = self.user_identification.draw_landmarks(frame)
 
-        # Display the image with landmarks in the QLabel
-        height, width, channel = image_with_landmarks.shape
-        bytes_per_line = channel * width
-        q_img = QImage(image_with_landmarks.data, width, height, bytes_per_line, QImage.Format_RGB888)
-        pixmap = QPixmap.fromImage(q_img)
-        self.camera_view_label.setPixmap(pixmap.scaled(
-            self.camera_view_label.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation
-        ))
+            # Display the image with landmarks in the QLabel
+            height, width, channel = image_with_landmarks.shape
+            bytes_per_line = channel * width
+            q_img = QImage(image_with_landmarks.data, width, height, bytes_per_line, QImage.Format_RGB888)
+            pixmap = QPixmap.fromImage(q_img)
+            self.camera_view_label.setPixmap(pixmap.scaled(
+                self.camera_view_label.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation
+            ))
 
-        # Store the captured frame for further processing
-        self.captured_frame = frame
+            # Store the captured frame for further processing
+            self.captured_frame = frame
+
+        except NoFaceDetectedException as e:
+            self.captured_frame = None
+            QMessageBox.warning(self, "Face Not Found", str(e))
+        except MultipleFacesDetectedException as e:
+            self.captured_frame = None
+            QMessageBox.warning(self, "Multiple Faces Detected", str(e))
+
+
 
     def submit_data(self):
         '''Start the feature extraction in a separate thread or prompt if user exists'''
@@ -162,6 +176,10 @@ class RegisterScreen(QWidget):
 
         # Check if user with this name exists
         existing_user = self.database_manager.user_exists(name)
+
+        if self.captured_frame is None:
+            QMessageBox.warning(self, "Error", "No valid face captured. Please capture a photo with a single face.")
+            return
 
         if existing_user:
             # If user exists, verify password
