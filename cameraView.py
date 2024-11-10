@@ -3,7 +3,7 @@ import cv2
 
 class CameraView:
     '''This class is responsible for camera stream'''
-    def __init__(self, camera_index=1):
+    def __init__(self, camera_index=0):
         self.camera_index = camera_index
         self.camera = cv2.VideoCapture(self.camera_index)
         if not self.camera.isOpened():
