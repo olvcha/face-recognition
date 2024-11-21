@@ -11,35 +11,33 @@ class UserIdentification:
 
     def __init__(self):
         self.detector = dlib.get_frontal_face_detector()
-        self.predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")  # Ensure this model file is available
+        self.predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
         self.db_manager = DatabaseManager()
 
     def preprocess_image(self, image):
         '''Preprocesses the image for landmark detection'''
-        # Resize the image if it's too large (optional step to optimize performance)
         height, width = image.shape[:2]
         max_dimension = 800  # Adjust based on your requirements
         if max(height, width) > max_dimension:
             scale = max_dimension / max(height, width)
             image = cv2.resize(image, (int(width * scale), int(height * scale)))
 
-        # Convert image to grayscale
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         return gray
 
     def extract_feature_vector(self, image):
         '''Extracts an extended facial feature vector based on normalized landmark distances and angles'''
-        # Step 1: Preprocess the image
+        # Preprocess the image
         gray = self.preprocess_image(image)
 
-        # Step 2: Detect faces
+        # Detect faces
         faces = self.detector(gray)
         if len(faces) == 0:
             raise NoFaceDetectedException("No faces detected.")
         elif len(faces) > 1:
             raise MultipleFacesDetectedException("Multiple faces detected.")
 
-        # Step 3: Detect landmarks on the single detected face
+        # Detect landmarks on the single detected face
         face = faces[0]
         landmarks = self.predictor(gray, face)
 

@@ -4,7 +4,7 @@ from DatabaseManager import DatabaseManager
 
 
 class FeatureExtractionThread(QThread):
-    extraction_complete = pyqtSignal(str)  # Signal to notify when extraction and saving are complete
+    extraction_complete = pyqtSignal(str)
 
     def __init__(self, name, password, captured_frame, user_identification, overwrite):
         super().__init__()
@@ -13,23 +13,19 @@ class FeatureExtractionThread(QThread):
         self.captured_frame = captured_frame
         self.user_identification = user_identification
         self.db_manager = DatabaseManager()
-        self.overwrite= overwrite# Initialize DatabaseManager here to ensure connection is fresh
+        self.overwrite= overwrite
 
     def run(self):
         '''Extract feature vector and save to database'''
         try:
-            # Step 1: Extract feature vector from the captured frame
             feature_vector = self.user_identification.extract_feature_vector(self.captured_frame)
             if not feature_vector:
                 self.extraction_complete.emit("Error: Unable to detect face or extract features.")
                 return
 
-            # Step 2: Save to database
-            # Convert feature vector to a string format (or appropriate format for database storage)
             feature_vector_str = ",".join(map(str, feature_vector))
             result = self.db_manager.register_user(self.name, self.password, feature_vector_str, self.overwrite)
 
-            # Emit success message if saved correctly
             if result:
                 self.extraction_complete.emit(f"User {self.name} registered successfully!")
             else:

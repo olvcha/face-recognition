@@ -45,7 +45,6 @@ class DatabaseManager:
 
     def register_user(self, name, password, feature_vector, overwrite=False):
         """Registers a new user with name, surname, and facial feature vector in the database."""
-        # Ensure feature_vector is properly formatted as a comma-separated string
         if isinstance(feature_vector, list):
             feature_vector = ','.join(map(str, feature_vector))
 
@@ -54,13 +53,11 @@ class DatabaseManager:
             conn = sqlite3.connect(self.db_name)
             cursor = conn.cursor()
             if overwrite:
-                # Update existing user record
                 cursor.execute("""
                                 UPDATE users SET password = ?, feature_vector = ?
                                 WHERE name = ?
                             """, (hashed_password, feature_vector, name))
             else:
-                # Insert new user record
                 cursor.execute("""
                                 INSERT INTO users (name, password, feature_vector)
                                 VALUES (?, ?, ?)
