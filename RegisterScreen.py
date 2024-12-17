@@ -8,7 +8,7 @@ from DatabaseManager import DatabaseManager
 from FaceExceptions import NoFaceDetectedException, MultipleFacesDetectedException
 from FeatureExtractionThread import FeatureExtractionThread
 from UserIdentification import UserIdentification
-from cameraApp import CameraApp
+from CameraApp import CameraApp
 
 
 
@@ -29,12 +29,15 @@ class RegisterScreen(QWidget):
         self.init_ui()
 
     def init_ui(self):
-        layout = QVBoxLayout()
+        main_layout = QVBoxLayout()
+
+        # Input fields in one horizontal row, placed above the camera feed
+        input_layout = QHBoxLayout()
 
         # Input field for name
         self.name_input = QLineEdit(self)
         self.name_input.setPlaceholderText("Enter Name")
-        layout.addWidget(self.name_input)
+        input_layout.addWidget(self.name_input)
 
         # Password input with toggle visibility button
         password_layout = QHBoxLayout()
@@ -52,29 +55,66 @@ class RegisterScreen(QWidget):
         self.show_password_button.clicked.connect(self.toggle_password_visibility)
         password_layout.addWidget(self.show_password_button)
 
-        layout.addLayout(password_layout)
+        input_layout.addLayout(password_layout)
 
-        # Camera view for displaying live feed or captured photo
+        # Add the input fields row to the main layout
+        main_layout.addLayout(input_layout)
+
+        # Add spacing to move the camera feed a little higher
+        main_layout.addSpacing(-25)  # Adds a small gap to adjust visual position
+
+        # Camera feed moved a little higher without resizing
         self.camera_view_label = QLabel(self)
-        self.camera_view_label.setFixedSize(640, 480)
-        layout.addWidget(self.camera_view_label)
+        self.camera_view_label.setFixedSize(640, 400)  # Maintain the original size
+        self.camera_view_label.setAlignment(Qt.AlignCenter)
+        main_layout.addWidget(self.camera_view_label)
 
-        # Capture button
+        # Common button styles with gray theme and hover effect
+        button_styles = """
+            QPushButton {
+                font-size: 18px;
+                background-color: #D3D3D3; /* Light Gray */
+                color: black;
+                border: 1px solid #A9A9A9; /* Dark Gray border */
+                padding: 10px 20px;
+                border-radius: 5px;
+            }
+            QPushButton:hover {
+                background-color: #A9A9A9; /* Darker Gray */
+                color: white;
+            }
+            QPushButton:pressed {
+                background-color: #808080; /* Even Darker Gray */
+                color: white;
+            }
+        """
+
+        # Buttons in a single horizontal row
+        button_layout = QHBoxLayout()
+
+        # Start Camera button
         self.capture_button = QPushButton("Start Camera", self)
+        self.capture_button.setStyleSheet(button_styles)
         self.capture_button.clicked.connect(self.toggle_camera_and_capture)
-        layout.addWidget(self.capture_button)
+        button_layout.addWidget(self.capture_button)
 
         # Submit button
         self.submit_button = QPushButton("Submit", self)
+        self.submit_button.setStyleSheet(button_styles)
         self.submit_button.clicked.connect(self.submit_data)
-        layout.addWidget(self.submit_button)
+        button_layout.addWidget(self.submit_button)
 
         # Back to Main Screen button
         self.back_button = QPushButton("Back to Main Screen", self)
+        self.back_button.setStyleSheet(button_styles)
         self.back_button.clicked.connect(self.go_back)
-        layout.addWidget(self.back_button)
+        button_layout.addWidget(self.back_button)
 
-        self.setLayout(layout)
+        # Add all buttons to a horizontal layout
+        main_layout.addLayout(button_layout)
+
+        # Set main layout and window title
+        self.setLayout(main_layout)
         self.setWindowTitle("Registration Screen")
 
         # Set up a QTimer to update the camera feed
@@ -174,34 +214,37 @@ class RegisterScreen(QWidget):
         name = self.name_input.text()
         password = self.password_input.text()
 
-        # Check if user with this name exists
-        existing_user = self.database_manager.user_exists(name)
-
-        if self.captured_frame is None:
-            QMessageBox.warning(self, "Error", "No valid face captured. Please capture a photo with a single face.")
-            return
-
-        if existing_user:
-            # If user exists, verify password
-            stored_password, _ = existing_user
-            if self.database_manager.verify_password(stored_password, password):
-                # Ask if they want to overwrite data
-                reply = QMessageBox.question(
-                    self, 'User Exists',
-                    "A user with this name already exists. Do you want to overwrite the data?",
-                    QMessageBox.Yes | QMessageBox.No
-                )
-                if reply == QMessageBox.Yes:
-                    # Overwrite existing user data
-                    self.register_user_with_overwrite(name, password)
-                else:
-                    QMessageBox.information(self, "Cancelled", "User data was not overwritten.")
-            else:
-                # Password mismatch
-                QMessageBox.warning(self, "Error", "Password does not match to the existing user of this name. Please enter correct one to overwrite face data.")
+        if not name or not password:
+            QMessageBox.warning(self, "Input Error", "Please fill in both the name and password fields.")
         else:
-            # New user, proceed with registration
-            self.register_user_without_overwrite(name, password)
+            # Check if user with this name exists
+            existing_user = self.database_manager.user_exists(name)
+
+            if self.captured_frame is None:
+                QMessageBox.warning(self, "Error", "No valid face captured. Please capture a photo with a single face.")
+                return
+
+            if existing_user:
+                # If user exists, verify password
+                stored_password, _ = existing_user
+                if self.database_manager.verify_password(stored_password, password):
+                    # Ask if they want to overwrite data
+                    reply = QMessageBox.question(
+                        self, 'User Exists',
+                        "A user with this name already exists. Do you want to overwrite the data?",
+                        QMessageBox.Yes | QMessageBox.No
+                    )
+                    if reply == QMessageBox.Yes:
+                        # Overwrite existing user data
+                        self.register_user_with_overwrite(name, password)
+                    else:
+                        QMessageBox.information(self, "Cancelled", "User data was not overwritten.")
+                else:
+                    # Password mismatch
+                    QMessageBox.warning(self, "Error", "Password does not match to the existing user of this name. Please enter correct one to overwrite face data.")
+            else:
+                # New user, proceed with registration
+                self.register_user_without_overwrite(name, password)
 
     def register_user_with_overwrite(self, name, password):
         '''Register user and overwrite existing data'''
@@ -235,6 +278,8 @@ class RegisterScreen(QWidget):
     def showEvent(self, event):
         '''Start the camera when the screen is shown'''
         self.start_camera()
+        self.name_input.clear()
+        self.password_input.clear()
         super().showEvent(event)
 
     def hideEvent(self, event):

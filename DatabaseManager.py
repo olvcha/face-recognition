@@ -80,7 +80,7 @@ class DatabaseManager:
         '''Fetches all users from the database'''
         conn = sqlite3.connect(self.db_name)
         cursor = conn.cursor()
-        cursor.execute("SELECT id, name, surname, feature_vector FROM users")
+        cursor.execute("SELECT id, name, feature_vector FROM users")
         users = cursor.fetchall()
         conn.close()
         return users

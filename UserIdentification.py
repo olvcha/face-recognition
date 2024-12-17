@@ -3,7 +3,7 @@ import cv2
 import dlib
 import numpy as np
 from DatabaseManager import DatabaseManager
-from registerScreen import NoFaceDetectedException, MultipleFacesDetectedException
+from RegisterScreen import NoFaceDetectedException, MultipleFacesDetectedException
 
 
 class UserIdentification:

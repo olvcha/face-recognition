@@ -1,6 +1,7 @@
+from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton
-from registerScreen import RegisterScreen
-from cameraApp import CameraApp
+from RegisterScreen import RegisterScreen
+from CameraApp import CameraApp
 
 class StartScreen(QWidget):
     '''This class is responsible for displaying the start screen'''
@@ -11,19 +12,48 @@ class StartScreen(QWidget):
 
     def init_ui(self):
         '''This method initializes the UI'''
+        # Create the layout
         layout = QVBoxLayout()
 
+        # Configure the label
         self.label = QLabel("Welcome to our Face Recognition App", self)
-        layout.addWidget(self.label)
+        self.label.setAlignment(Qt.AlignCenter)  # Center the label
+        self.label.setStyleSheet("font-size: 24px; font-weight: bold;")  # Make the label bigger
+        layout.addWidget(self.label, alignment=Qt.AlignCenter)
 
+        # Common button styles with gray theme and hover effect
+        button_styles = """
+            QPushButton {
+                font-size: 18px;
+                background-color: #D3D3D3; /* Light Gray */ 
+                color: black;
+                border: 1px solid #A9A9A9; /* Dark Gray border */
+                padding: 10px 20px;
+                border-radius: 5px;
+            }
+            QPushButton:hover {
+                background-color: #A9A9A9; /* Darker Gray */
+                color: white;
+            }
+            QPushButton:pressed {
+                background-color: #808080; /* Even Darker Gray */
+                color: white;
+            }
+        """
+
+        # Configure the Register button
         self.register_button = QPushButton("Register", self)
+        self.register_button.setStyleSheet(button_styles)
         self.register_button.clicked.connect(self.show_register)
-        layout.addWidget(self.register_button)
+        layout.addWidget(self.register_button, alignment=Qt.AlignCenter)
 
+        # Configure the Authorize button
         self.authorize_button = QPushButton("Authorize", self)
+        self.authorize_button.setStyleSheet(button_styles)
         self.authorize_button.clicked.connect(self.show_authorize)
-        layout.addWidget(self.authorize_button)
+        layout.addWidget(self.authorize_button, alignment=Qt.AlignCenter)
 
+        # Set the layout for the widget
         self.setLayout(layout)
 
     def show_register(self):
