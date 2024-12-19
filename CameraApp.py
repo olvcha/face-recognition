@@ -1,15 +1,16 @@
-import sys
 import cv2
-from PyQt5.QtWidgets import QApplication, QLabel, QWidget, QVBoxLayout, QPushButton, QMessageBox, QHBoxLayout
-from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtCore import QTimer, Qt
-from CameraView import CameraView
+from PyQt5.QtGui import QImage, QPixmap
+from PyQt5.QtWidgets import QLabel, QWidget, QVBoxLayout, QPushButton, QMessageBox, QHBoxLayout
 
-from UserSearch import UserSearch
 from AfterAuthorizationScreen import AfterAuthorizationScreen
+from CameraView import CameraView
+from UserSearch import UserSearch
+
 
 class CameraApp(QWidget):
     '''This class is responsible for displaying the camera window'''
+
     def __init__(self, stacked_widget):
         super().__init__()
         self.stacked_widget = stacked_widget
@@ -23,18 +24,14 @@ class CameraApp(QWidget):
         '''Initialize the UI with gray-styled buttons side by side.'''
         self.setFixedSize(680, 480)
 
-        # Main layout
         self.layout = QVBoxLayout()
 
-        # Label for displaying camera feed
         self.label = QLabel(self)
-        self.label.setFixedSize(640, 400)  # Adjusted height to move it higher
+        self.label.setFixedSize(640, 400)
         self.layout.addWidget(self.label, alignment=Qt.AlignCenter)
 
-        # Horizontal layout for buttons
         button_layout = QHBoxLayout()
 
-        # Common button styles with gray theme and hover effect
         button_styles = """
             QPushButton {
                 font-size: 18px;
@@ -54,22 +51,18 @@ class CameraApp(QWidget):
             }
         """
 
-        # Back to Main Screen button
         self.back_button = QPushButton("Back to Main Screen", self)
         self.back_button.setStyleSheet(button_styles)
         self.back_button.clicked.connect(self.go_back)
         button_layout.addWidget(self.back_button)
 
-        # Authorize button
         self.authorize_button = QPushButton("Authorize", self)
         self.authorize_button.setStyleSheet(button_styles)
         self.authorize_button.clicked.connect(self.authorize)
         button_layout.addWidget(self.authorize_button)
 
-        # Add the button layout to the main layout
         self.layout.addLayout(button_layout)
 
-        # Set the layout and window title
         self.setLayout(self.layout)
         self.setWindowTitle("Camera View")
 
@@ -84,7 +77,7 @@ class CameraApp(QWidget):
         if self.camera_view is not None:
             self.camera_view.release()
             self.camera_view = None
-            self.timer.stop()  # Stop the timer to stop updating frames
+            self.timer.stop()
 
     def update_frame(self):
         '''Ensure that the camera is valid before trying to read a frame'''
@@ -98,9 +91,7 @@ class CameraApp(QWidget):
             bytes_per_line = ch * w
             q_image = QImage(rgb_image.data, w, h, bytes_per_line, QImage.Format_RGB888)
 
-            pixmap = QPixmap.fromImage(q_image).scaled(
-                self.label.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation
-            )
+            pixmap = QPixmap.fromImage(q_image).scaled(self.label.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation)
 
             self.label.setPixmap(pixmap)
 
@@ -115,8 +106,6 @@ class CameraApp(QWidget):
         self.stop_camera()
         self.stacked_widget.setCurrentIndex(0)
 
-    from PyQt5.QtWidgets import QMessageBox
-
     def authorize(self):
         try:
             image = self.capture_frame()
@@ -124,19 +113,14 @@ class CameraApp(QWidget):
                 user_search = UserSearch(image)
                 user = user_search.get_nearest_user()
                 if user:
-                    print("jestes w bazie", user)
                     username = user[0][1]
-                    # Switch to AuthorizationScreen
                     self.stacked_widget.authorization_screen = AfterAuthorizationScreen(self.stacked_widget, username)
                     self.stacked_widget.addWidget(self.stacked_widget.authorization_screen)
                     self.stacked_widget.setCurrentWidget(self.stacked_widget.authorization_screen)
                 else:
-                    print("nie ma cie xddd")
-                    # Show a QMessageBox with "nie ma cie" text
                     QMessageBox.warning(self, "Authorization Failed", "Authorization denied. Please try again.")
         except Exception as e:
             print("Exception: ", e)
-            # Show a QMessageBox with the exception text
             QMessageBox.critical(self, "Error", f"An error has occured: {e}")
 
     def showEvent(self, event):
