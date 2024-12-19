@@ -1,12 +1,11 @@
+import sys
 import cv2
-from PyQt5.QtCore import QTimer, Qt
+from PyQt5.QtWidgets import QApplication, QLabel, QWidget, QVBoxLayout, QPushButton, QMessageBox, QHBoxLayout
 from PyQt5.QtGui import QImage, QPixmap
-from PyQt5.QtWidgets import QLabel, QWidget, QVBoxLayout, QPushButton, QMessageBox, QHBoxLayout
-
-from AfterAuthorizationScreen import AfterAuthorizationScreen
+from PyQt5.QtCore import QTimer, Qt
 from CameraView import CameraView
 from UserSearch import UserSearch
-
+from AfterAuthorizationScreen import AfterAuthorizationScreen
 
 class CameraApp(QWidget):
     '''This class is responsible for displaying the camera window'''

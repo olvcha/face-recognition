@@ -1,9 +1,7 @@
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton
-
-from CameraApp import CameraApp
 from RegisterScreen import RegisterScreen
-
+from CameraApp import CameraApp
 
 class StartScreen(QWidget):
     '''This class is responsible for displaying the start screen'''

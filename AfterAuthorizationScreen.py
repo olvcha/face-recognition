@@ -1,6 +1,5 @@
-from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton
-
+from PyQt5.QtCore import Qt
 
 class AfterAuthorizationScreen(QWidget):
     '''This class represents the screen displayed upon successful authorization.'''

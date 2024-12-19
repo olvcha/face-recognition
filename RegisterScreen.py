@@ -1,13 +1,14 @@
+import sys
 import cv2
-from PyQt5.QtCore import QTimer, Qt
-from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QLineEdit, QMessageBox, QHBoxLayout, QStyle
+from PyQt5.QtGui import QImage, QPixmap
+from PyQt5.QtCore import QTimer, Qt
 
-from CameraApp import CameraApp
 from DatabaseManager import DatabaseManager
 from FaceExceptions import NoFaceDetectedException, MultipleFacesDetectedException
 from FeatureExtractionThread import FeatureExtractionThread
 from UserIdentification import UserIdentification
+from CameraApp import CameraApp
 
 
 class RegisterScreen(QWidget):
