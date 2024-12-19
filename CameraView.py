@@ -1,6 +1,5 @@
 import cv2
 
-
 class CameraView:
     '''This class is responsible for camera stream'''
 

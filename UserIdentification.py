@@ -1,12 +1,9 @@
 from itertools import combinations
-
 import cv2
 import dlib
 import numpy as np
-
 from DatabaseManager import DatabaseManager
 from RegisterScreen import NoFaceDetectedException, MultipleFacesDetectedException
-
 
 class UserIdentification:
     '''Handles facial recognition and identification using Dlib landmarks'''

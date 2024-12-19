@@ -1,4 +1,3 @@
-import sys
 import cv2
 from PyQt5.QtWidgets import QApplication, QLabel, QWidget, QVBoxLayout, QPushButton, QMessageBox, QHBoxLayout
 from PyQt5.QtGui import QImage, QPixmap

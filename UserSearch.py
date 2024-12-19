@@ -1,8 +1,6 @@
 import numpy as np
-from scipy.spatial.distance import euclidean
 from DatabaseManager import DatabaseManager
 from UserIdentification import UserIdentification
-
 
 class UserSearch:
     '''Handles user search operations and identification.'''

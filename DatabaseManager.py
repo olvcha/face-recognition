@@ -1,9 +1,7 @@
 import os
 import sqlite3
-
 import bcrypt
 from cryptography.fernet import Fernet, InvalidToken
-
 
 def load_or_create_key():
     """Loads an existing encryption key or creates a new one if it doesn't exist."""

@@ -1,7 +1,5 @@
 from PyQt5.QtCore import QThread, pyqtSignal
-
 from DatabaseManager import DatabaseManager
-
 
 class FeatureExtractionThread(QThread):
     extraction_complete = pyqtSignal(str)

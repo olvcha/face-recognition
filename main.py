@@ -1,7 +1,5 @@
 import sys
-
 from PyQt5.QtWidgets import QApplication, QStackedWidget
-
 from StartScreen import StartScreen
 
 if __name__ == "__main__":

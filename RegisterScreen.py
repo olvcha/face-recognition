@@ -1,4 +1,3 @@
-import sys
 import cv2
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QLineEdit, QMessageBox, QHBoxLayout, QStyle
 from PyQt5.QtGui import QImage, QPixmap
@@ -9,7 +8,6 @@ from FaceExceptions import NoFaceDetectedException, MultipleFacesDetectedExcepti
 from FeatureExtractionThread import FeatureExtractionThread
 from UserIdentification import UserIdentification
 from CameraApp import CameraApp
-
 
 class RegisterScreen(QWidget):
     '''This class is responsible for displaying the registration screen'''
